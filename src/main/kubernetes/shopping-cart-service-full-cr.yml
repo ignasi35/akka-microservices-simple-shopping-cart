@@ -1,0 +1,47 @@
+apiVersion: "v1"
+kind: "Namespace"
+metadata:
+  name: "akka-dev"
+---
+apiVersion: "akka.lightbend.com/v1"
+kind: "AkkaMicroservice"
+metadata:
+  name: "shopping-cart-service"
+  namespace: "akka-dev"
+spec:
+  replicas: 3
+  image: "shopping-cart-service:HEAD-20210302-1934"
+  imagePullPolicy: "IfNotPresent"
+  appVersion: "20210302-1440-3"
+  imagePullSecrets:
+  - "regcred"
+  splitBrainResolver:
+    useKubernetesLease: true
+  akkaManagementPort: "8558"
+  grpcPort: "8101"
+  httpPort: "8080"
+  readinessProbe:
+    httpGet:
+      path: "/ready"
+      port: "management"
+  livenessProbe:
+    httpGet:
+      path: "/alive"
+      port: "management"
+  javaOptions: "-Dakka.actor.default-blocking-io-dispatcher.thread-pool-executor.fixed-pool-size=10 -Xlog:gc"
+  env:
+  - name: "DEMO_GREETING"
+    value: "Hello from the environment"
+  - name: "DEMO_FAREWELL"
+    value: "Such a sweet sorrow"
+  deploymentStrategy:
+    rollingUpdate:
+      maxSurge: "25%"
+      maxUnavailable: "25%"
+    type: "RollingUpdate"
+  resources:
+    limits:
+      memory: "512Mi"
+    requests:
+      memory: "512Mi"
+      cpu: "1000m"
