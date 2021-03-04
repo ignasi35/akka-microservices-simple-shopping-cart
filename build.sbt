@@ -1,3 +1,5 @@
+import com.typesafe.sbt.packager.docker.Cmd
+
 name := "shopping-cart-service"
 
 organization := "com.lightbend.akka.samples"
@@ -40,6 +42,18 @@ enablePlugins(JavaAppPackaging, DockerPlugin)
 dockerBaseImage := "docker.io/library/adoptopenjdk:11-jre-hotspot"
 dockerUsername := sys.props.get("docker.username")
 dockerRepository := sys.props.get("docker.registry")
+// Set user to `root` so getting on a shell and installing stuff to tune networking works like a charm.
+daemonUserUid in Docker := None
+daemonUser in Docker    := "root"
+
+dockerCommands ++= Seq(
+  Cmd("RUN", "apt-get", "update"),
+  Cmd("RUN", "apt-get", "-y", "install", "iptables"),
+  Cmd("RUN", "apt-get", "-y", "install", "net-tools"),
+)
+
+
+
 ThisBuild / dynverSeparator := "-"
 
 libraryDependencies ++= Seq(
